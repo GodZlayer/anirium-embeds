@@ -1,0 +1,10 @@
+{
+  "id": "anirium-embeds",
+  "name": "Anirium External Media Embeds (Player Pro & Manga Reader Pro)",
+  "version": "1.0.0",
+  "repository": "https://github.com/GodZlayer/anirium-embeds",
+  "embeds": {
+    "video": "https://godzlayer.github.io/anirium-embeds/video/",
+    "manga": "https://godzlayer.github.io/anirium-embeds/manga/"
+  }
+}

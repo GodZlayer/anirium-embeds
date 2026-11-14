@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Anirium Manga Reader Pro — Embed Externo</title>
+    <style>
+        :root {
+            --bg: #0B0B0D;
+            --surface: #141720;
+            --raised: #1C202E;
+            --border: rgba(255, 255, 255, 0.12);
+            --accent: #FFC766;
+            --text: #FFF9F0;
+            --muted: #8E8E93;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px;
+            user-select: none;
+        }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            background: var(--accent);
+            color: #0B0B0D;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1px solid var(--border);
+            background: var(--raised);
+            color: var(--text);
+            cursor: pointer;
+        }
+        .btn:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-primary {
+            background: var(--accent);
+            color: #0B0B0D;
+            border-color: var(--accent);
+            font-weight: 900;
+        }
+        .reader-stage {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: #07080C;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .page-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar mono">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span id="chap-pill" class="pill">CAPÍTULO 1</span>
+            <span id="work-title" style="font-size:12px; font-weight:800;">Mangá</span>
+            <span style="font-size:10px; color:var(--muted);">📦 Módulo Externo: GodZlayer/anirium-embeds</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+            <label class="btn btn-primary mono">
+                📄 Carregar PDF / Imagens
+                <input type="file" accept=".pdf,image/*" multiple style="display:none;" onchange="loadFiles(this)">
+            </label>
+            <button type="button" class="btn mono" onclick="stepChapter(-1)">❮ Cap. Anterior</button>
+            <button type="button" class="btn mono" onclick="stepChapter(1)">Próximo Cap. ❯</button>
+        </div>
+    </div>
+
+    <div id="reader-stage" class="reader-stage">
+        <div style="max-width:440px; text-align:center; display:flex; flex-direction:column; gap:12px; align-items:center;">
+            <div style="width:52px; height:52px; border-radius:16px; background:rgba(255,199,102,0.15); border:1px solid rgba(255,199,102,0.4); display:flex; align-items:center; justify-content:center; font-size:22px;">📖</div>
+            <h3 id="reader-heading" style="font-size:16px; font-weight:900;">Anirium Manga Reader Pro</h3>
+            <p class="mono" style="font-size:11px; color:var(--muted); line-height:1.5;">
+                Módulo externo de leitura contínua (Webtoon / Páginas / PDF). Selecione um arquivo PDF ou conjunto de imagens para iniciar a leitura.
+            </p>
+            <label class="btn btn-primary mono" style="padding:10px 18px;">
+                📄 Selecionar Capítulo (.PDF / .JPG / .PNG / .WEBP)
+                <input type="file" accept=".pdf,image/*" multiple style="display:none;" onchange="loadFiles(this)">
+            </label>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const state = {
+            workId: params.get('workId') || '',
+            chapter: parseInt(params.get('chapter') || '1', 10) || 1,
+            title: params.get('title') || 'Mangá'
+        };
+
+        document.getElementById('chap-pill').innerText = `CAPÍTULO ${state.chapter}`;
+        document.getElementById('work-title').innerText = state.title;
+        document.getElementById('reader-heading').innerText = `${state.title} — Capítulo ${state.chapter}`;
+
+        function stepChapter(delta) {
+            const nextChap = Math.max(1, state.chapter + delta);
+            window.parent.postMessage({
+                type: 'anirium:manga:step-chapter',
+                delta: delta,
+                chapter: nextChap,
+                workId: state.workId
+            }, '*');
+        }
+
+        function loadFiles(input) {
+            const files = Array.from(input?.files || []);
+            const stage = document.getElementById('reader-stage');
+            if (!files.length || !stage) return;
+
+            stage.style.justifyContent = 'flex-start';
+            if (files[0].type === 'application/pdf' || files[0].name.toLowerCase().endsWith('.pdf')) {
+                const url = URL.createObjectURL(files[0]);
+                stage.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none; border-radius:12px; background:#fff;"></iframe>`;
+                return;
+            }
+
+            stage.innerHTML = files.map(f => {
+                const u = URL.createObjectURL(f);
+                return `<img src="${u}" class="page-img">`;
+            }).join('');
+        }
+    </script>
+</body>
+</html>
