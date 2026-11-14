@@ -558,9 +558,6 @@
                 season: state.season || 1,
                 episode: state.episode || 1
             };
-            if (state.malId > 0) preparePayload.malId = state.malId;
-            if (state.episodeCount > 0) preparePayload.episodeCount = state.episodeCount;
-            if (state.format) preparePayload.format = state.format;
 
             try {
                 const prepRes = await fetch('http://127.0.0.1:4004/playback/prepare', {
@@ -575,14 +572,14 @@
                     return;
                 }
 
-                if (prepData.sources === 0 || prepData.status === 'no-sources') {
+                if (prepData.status === 'no-sources' && !prepData.playbackTicket) {
                     setStatus('● Sem Fontes no Swarm', 'pill-warn', `Nenhuma fonte retornada pelos seus provedores habilitados para <strong>${state.title} — Episódio ${state.episode}</strong>.`);
                     return;
                 }
 
                 state.playbackTicket = prepData.playbackTicket || '';
                 state.sourcesCount = Number(prepData.sources || 0);
-                setStatus('● Swarm Unificado Ativo', 'pill-online', `Swarm iniciado com ${state.sourcesCount} fonte(s) unificada(s)! Sondando trilhas de vídeo, áudio e legendas...`);
+                setStatus('● Swarm Unificado Ativo', 'pill-online', `Sessão unificada iniciada no Anirium+ Service! Sondando fontes, trilhas de vídeo, áudio e legendas...`);
 
                 const poll = async () => {
                     if (!state.playbackTicket) return;
